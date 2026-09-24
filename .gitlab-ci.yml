@@ -1,0 +1,61 @@
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_TAG
+
+stages:
+  - test
+  - release
+
+variables:
+  GOPATH: $CI_PROJECT_DIR/.go
+
+.go-cache:
+  cache:
+    key:
+      files:
+        - go.sum
+    paths:
+      - .go/pkg/mod/
+
+test:
+  stage: test
+  image: golang:1.25
+  extends: .go-cache
+  script:
+    - test -z "$(gofmt -l $(git ls-files '*.go'))" || { gofmt -l $(git ls-files '*.go'); echo "run 'make fmt'"; exit 1; }
+    - go vet ./...
+    - go test -v ./...
+    - go build -v ./...
+
+commitlint:
+  stage: test
+  image: node:22-alpine
+  variables:
+    GIT_DEPTH: 0
+  before_script:
+    - apk add --no-cache git
+  script:
+    - npx --yes -p @commitlint/cli -p @commitlint/config-conventional commitlint --config .config/.commitlintrc.json --from "$CI_MERGE_REQUEST_DIFF_BASE_SHA" --to "$CI_COMMIT_SHA" --verbose
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+# Push a semver tag (e.g. v0.3.0) to publish a GitLab release. The version
+# compiled into the plugin is taken from that same tag by goreleaser.
+release:
+  stage: release
+  image:
+    name: goreleaser/goreleaser:latest
+    entrypoint: [""]
+  extends: .go-cache
+  needs: [test]
+  variables:
+    GIT_DEPTH: 0
+    GITLAB_TOKEN: $CI_JOB_TOKEN
+  script:
+    - goreleaser release --clean --config .config/.goreleaser.yaml
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/

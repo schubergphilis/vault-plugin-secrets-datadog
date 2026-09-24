@@ -11,6 +11,7 @@ import (
 
 type datadogClient struct {
 	*datadog.APIClient
+	site string
 }
 
 func NewClient(config *datadogConfig) (*datadogClient, error) {
@@ -31,7 +32,12 @@ func NewClient(config *datadogConfig) (*datadogClient, error) {
 	conf.AddDefaultHeader("DD-APPLICATION-KEY", config.AppKey)
 	c := datadog.NewAPIClient(conf)
 
-	return &datadogClient{c}, nil
+	return &datadogClient{APIClient: c, site: config.siteOrDefault()}, nil
+}
+
+// withSite points API calls made with ctx at the configured Datadog site.
+func (c *datadogClient) withSite(ctx context.Context) context.Context {
+	return context.WithValue(ctx, datadog.ContextServerVariables, map[string]string{"site": c.site})
 }
 
 func (c *datadogClient) createAPIKey(ctx context.Context, apiKeyName string) (*datadogAPIKey, error) {
@@ -45,7 +51,7 @@ func (c *datadogClient) createAPIKey(ctx context.Context, apiKeyName string) (*d
 
 	api := datadogV2.NewKeyManagementApi(c.APIClient)
 
-	ddresp, _, err := api.CreateAPIKey(ctx, body)
+	ddresp, _, err := api.CreateAPIKey(c.withSite(ctx), body)
 	if err != nil {
 		return nil, fmt.Errorf("error creating datadog API key; %w", err)
 	}
@@ -61,7 +67,7 @@ func (c *datadogClient) deleteAPIKey(ctx context.Context, apiKeyID string) error
 
 	api := datadogV2.NewKeyManagementApi(c.APIClient)
 
-	_, err := api.DeleteAPIKey(ctx, apiKeyID)
+	_, err := api.DeleteAPIKey(c.withSite(ctx), apiKeyID)
 	if err != nil {
 		return fmt.Errorf("error deleting datadog API key: %w", err)
 	}
@@ -86,7 +92,7 @@ func (c *datadogClient) createAppKey(ctx context.Context, name string, scopes []
 
 	api := datadogV2.NewKeyManagementApi(c.APIClient)
 
-	ddresp, _, err := api.CreateCurrentUserApplicationKey(ctx, body)
+	ddresp, _, err := api.CreateCurrentUserApplicationKey(c.withSite(ctx), body)
 	if err != nil {
 		return nil, fmt.Errorf("error creating datadog application key: %w", err)
 	}
@@ -103,7 +109,7 @@ func (c *datadogClient) deleteAppKey(ctx context.Context, appKeyID string) error
 
 	api := datadogV2.NewKeyManagementApi(c.APIClient)
 
-	_, err := api.DeleteApplicationKey(ctx, appKeyID)
+	_, err := api.DeleteApplicationKey(c.withSite(ctx), appKeyID)
 	if err != nil {
 		return fmt.Errorf("error deleting datadog application key: %w", err)
 	}

@@ -4,13 +4,12 @@ Thank you for your interest in contributing! This document provides guidelines f
 
 ## Getting Started
 
-1. Fork the repository
-2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/vault-plugin-secrets-datadog.git`
-3. Create a feature branch: `git checkout -b feature/my-new-feature`
-4. Make your changes
-5. Test your changes: `go test ./...`
-6. Commit using conventional commits (see below)
-7. Push to your fork and submit a pull request
+1. Clone the repository: `git clone ssh://git@sbp.gitlab.schubergphilis.com:2228/SaaS/Azure/vault/vault-plugins/vault-plugin-secrets-datadog.git`
+2. Create a feature branch: `git checkout -b feature/my-new-feature`
+3. Make your changes
+4. Test your changes: `go test ./...`
+5. Commit using conventional commits (see below)
+6. Push your branch and open a merge request
 
 ## Development Setup
 
@@ -42,7 +41,7 @@ make test
 
 ## Commit Message Guidelines
 
-**⚠️ IMPORTANT:** This project enforces [Conventional Commits](https://www.conventionalcommits.org/) format. Pull requests with non-compliant commit messages will fail CI checks.
+**⚠️ IMPORTANT:** This project enforces [Conventional Commits](https://www.conventionalcommits.org/) format. Merge requests with non-compliant commit messages will fail the `commitlint` CI job.
 
 ### Format
 
@@ -130,17 +129,17 @@ BREAKING CHANGE: Configuration file format has changed from YAML to JSON.
 Migration guide: https://...
 ```
 
-## Pull Request Process
+## Merge Request Process
 
 1. **Ensure tests pass**: Run `go test ./...`
 2. **Update documentation**: If you've changed APIs or behavior
-3. **Use conventional commits**: PR title and commits must follow format
-4. **Keep PRs focused**: One feature/fix per PR
+3. **Use conventional commits**: MR title and commits must follow format
+4. **Keep MRs focused**: One feature/fix per PR
 5. **Write clear descriptions**: Explain what and why, not just how
 
-### PR Title Format
+### MR Title Format
 
-Your PR title must follow conventional commit format (it becomes the commit message when squash merged):
+Your MR title must follow conventional commit format (it becomes the commit message when squash merged):
 
 ```
 feat: Add support for new Datadog scopes
@@ -150,9 +149,9 @@ docs: Improve role configuration examples
 
 ### Automated Checks
 
-Every PR will run:
+Every MR will run:
 - ✅ **Test Suite**: All unit tests must pass
-- ✅ **Conventional Commits**: PR title and commits validated
+- ✅ **Conventional Commits**: commit messages validated by `commitlint`
 - ✅ **Build**: Code must compile successfully
 
 ## Code Style
@@ -177,7 +176,7 @@ By contributing, you agree that your contributions will be licensed under the sa
 
 ## Questions?
 
-- Check existing issues and PRs
+- Check existing issues and MRs
 - Read the documentation in `RELEASE.md`
 - Open a discussion for questions
 

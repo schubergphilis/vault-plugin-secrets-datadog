@@ -20,3 +20,6 @@ dist/
 
 # Claude Code configuration (may contain tokens)
 .claude/
+
+# Go module cache used by GitLab CI
+.go/

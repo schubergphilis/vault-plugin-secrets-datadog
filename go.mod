@@ -1,4 +1,4 @@
-module github.com/rizkybiz/vault-plugin-secrets-datadog
+module sbp.gitlab.schubergphilis.com/SaaS/Azure/vault/vault-plugins/vault-plugin-secrets-datadog
 
 go 1.25.7
 

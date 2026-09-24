@@ -1,218 +1,63 @@
 # Release Process
 
-This project uses [Release Please](https://github.com/googleapis/release-please) for automated releases with semantic versioning.
+Releases are published by the GitLab pipeline (`.gitlab-ci.yml`) whenever a semantic version tag (`vX.Y.Z`) is pushed. [GoReleaser](https://goreleaser.com/) builds the binaries, uploads them to the project's generic package registry and creates a GitLab Release.
 
-## How It Works
+## Version consistency
 
-Release Please automates the entire release process:
+The version the plugin reports to Vault (`RunningVersion`, visible in `vault plugin list` and `sys/plugins/catalog`) is not stored in the source. It is injected at build time from the git tag via `-ldflags -X .../plugin.Version=...`:
 
-1. **Analyzes Commits**: Scans commit messages since the last release
-2. **Determines Version**: Calculates the next version based on conventional commits
-3. **Updates CHANGELOG**: Automatically maintains CHANGELOG.md
-4. **Creates Release PR**: Opens a pull request with version bump and changelog updates
-5. **Triggers Release**: When the release PR is merged, creates a GitHub release and tag
-6. **Builds Artifacts**: GoReleaser builds and publishes release artifacts
+- Release builds (GoReleaser) use the tag being released, so the binary and the GitLab Release always carry the same version.
+- Local builds (`make build`) use `git describe --tags`, e.g. `v0.3.0-2-gabc1234-dirty`.
+- Plain `go build` without ldflags reports `v0.0.0-dev`.
 
-## Commit Message Format
+There is no version constant to bump before a release.
 
-Use [Conventional Commits](https://www.conventionalcommits.org/) for automatic changelog generation.
+## Releasing
 
-**⚠️ ENFORCED:** Pull requests are automatically validated to ensure commit messages follow the conventional format. PRs that don't comply will fail status checks and cannot be merged.
+1. Make sure `main` is green and contains everything you want to release.
+2. Move the `[Unreleased]` entries in `CHANGELOG.md` under a new version heading and merge that change to `main`.
+3. Tag the release commit on `main` and push the tag:
 
-### Version Bumps
+   ```bash
+   git checkout main && git pull
+   git tag -a v0.3.0 -m "v0.3.0"
+   git push origin v0.3.0
+   ```
 
-- `fix:` - Patch version bump (0.1.0 → 0.1.1)
-- `feat:` - Minor version bump (0.1.0 → 0.2.0)
-- `BREAKING CHANGE:` or `!` - Major version bump (0.1.0 → 1.0.0)
+4. The tag pipeline runs `test` and then `release`. The release appears under **Deploy → Releases**, and its archives and checksums under **Deploy → Package Registry**.
 
-### Changelog Categories
+Only tags matching `vX.Y.Z` trigger the `release` job. Pre-release tags such as `v0.3.0-rc1` only run the tests.
 
-```bash
-# Bug Fixes
-git commit -m "fix: resolve API key generation timeout"
-git commit -m "fix(auth): handle expired credentials properly"
+## Choosing the version
 
-# New Features
-git commit -m "feat: add support for new Datadog scopes"
-git commit -m "feat(roles): implement role inheritance"
+This project follows [Semantic Versioning](https://semver.org/). Use the [Conventional Commits](https://www.conventionalcommits.org/) since the last tag to decide on the version:
 
-# Breaking Changes
-git commit -m "feat!: change configuration format"
-git commit -m "fix!: remove deprecated endpoints"
+- `fix:`: patch (0.1.0 → 0.1.1)
+- `feat:`: minor (0.1.0 → 0.2.0)
+- `BREAKING CHANGE:` or `!`: major (0.1.0 → 1.0.0)
 
-# Documentation
-git commit -m "docs: update README with new examples"
-git commit -m "docs(api): improve API reference"
-
-# Dependency Updates
-git commit -m "build(deps): bump vault SDK to v0.20.0"
-git commit -m "chore(deps): update Datadog client"
-
-# Other Changes (won't appear in changelog)
-git commit -m "chore: update .gitignore"
-git commit -m "ci: fix test workflow"
-git commit -m "style: format code"
-git commit -m "refactor: simplify client initialization"
-```
-
-## Release Workflow
-
-### Automated Release (Recommended)
-
-1. **Merge PRs to main** using conventional commit messages
-2. **Release Please opens a PR** automatically with:
-   - Version bump in necessary files
-   - Updated CHANGELOG.md
-   - Release notes
-3. **Review the release PR** to verify changes
-4. **Merge the release PR** to trigger the release
-5. **GitHub release is created** automatically with built artifacts
-
-### Example Release PR
-
-When you merge commits to main, Release Please will open a PR like:
-
-```
-Title: chore(main): release 0.2.0
-
-Changes:
-- Updates version in files
-- Adds entries to CHANGELOG.md
-- Includes all changes since last release
-```
-
-### Manual Tag Release (Legacy)
-
-If you need to create a release manually:
+While in 0.x.x, minor versions may contain breaking changes.
 
 ```bash
-# Create and push a tag
-git tag v0.2.0
-git push origin v0.2.0
-
-# The legacy release.yml workflow will trigger
-# Note: This bypasses automatic changelog generation
+# commits since the last release
+git log --oneline "$(git describe --tags --abbrev=0)"..HEAD
 ```
 
-## Version Strategy
+## Commit message validation
 
-This project follows [Semantic Versioning](https://semver.org/):
+On merge requests, the `commitlint` job validates every commit against `.config/.commitlintrc.json` (types `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`; header up to 100 characters; no trailing period). If you squash-merge, make sure the squash commit message follows the same format.
 
-- **MAJOR** (X.0.0): Breaking changes
-- **MINOR** (0.X.0): New features (backward compatible)
-- **PATCH** (0.0.X): Bug fixes (backward compatible)
+## Pipeline requirements
 
-### Pre-1.0.0 Versions
+- The `release` job authenticates with `CI_JOB_TOKEN` (`use_job_token` in `.config/.goreleaser.yaml`), so it needs no extra CI/CD variables.
+- The job fails if the working tree is dirty or if the tag is not reachable in the clone. `GIT_DEPTH: 0` and the `.go/` entry in `.gitignore` take care of this.
 
-While in 0.x.x versions:
-- Minor version changes (0.X.0) may include breaking changes
-- Patch versions (0.0.X) are for bug fixes only
+## Build configuration
 
-## Commit Message Validation
+`.config/.goreleaser.yaml` defines the build targets (Linux, macOS, Windows on amd64, arm64, 386, arm) and generates SHA256 checksums.
 
-### How It Works
+To test the release build locally without publishing:
 
-PRs are automatically checked for conventional commit compliance:
-
-1. **PR Title Validation**: Ensures PR title follows conventional format
-2. **Commit Message Validation**: Validates all commits in the PR
-3. **Status Check**: Required check must pass before merging
-
-### Validation Rules
-
-- **Type**: Must be one of: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
-- **Scope** (optional): e.g., `feat(api):` or `fix(auth):`
-- **Subject**: Must start with uppercase letter, no period at end
-- **Length**: Header max 100 characters
-
-### Bypass Validation (Emergency Only)
-
-If you need to bypass validation temporarily:
-
-1. Add the label `ignore-semantic-pr` to the PR
-2. Merge carefully - this will not generate proper changelog entries
-
-### Fixing Validation Failures
-
-**If PR title is invalid:**
 ```bash
-# Edit the PR title to follow format:
-# type(scope): Description starts with capital letter
-# Example: feat: Add new authentication method
+goreleaser release --snapshot --clean --config .config/.goreleaser.yaml
 ```
-
-**If commit messages are invalid:**
-```bash
-# Option 1: Amend the last commit
-git commit --amend -m "fix: correct commit message format"
-git push --force
-
-# Option 2: Interactive rebase to fix multiple commits
-git rebase -i HEAD~3  # Edit last 3 commits
-# Change "pick" to "reword" for commits to fix
-# Save and edit each commit message
-
-git push --force
-```
-
-**For squash merges:**
-- Only the PR title matters (it becomes the commit message)
-- Ensure PR title follows conventional format
-
-## Troubleshooting
-
-### Release PR not created
-
-**Possible causes:**
-- No commits since last release
-- Commits don't follow conventional commit format
-- Release Please workflow failed (check Actions tab)
-
-**Solution:**
-- Ensure commits use `feat:`, `fix:`, etc. prefixes
-- Check GitHub Actions logs for errors
-
-### Wrong version bump
-
-**Cause:** Commit message didn't match expected format
-
-**Solution:**
-- Use correct conventional commit prefix
-- For breaking changes, add `!` or `BREAKING CHANGE:` in commit body
-
-### Need to modify release PR
-
-**Options:**
-1. Push more commits to main - Release Please will update the PR
-2. Close the release PR and it will be recreated with new commits
-3. Manually edit the PR's CHANGELOG.md if needed
-
-## CI/CD Integration
-
-### Workflows
-
-- **`.github/workflows/release-please.yml`**: Automated releases
-- **`.github/workflows/release.yml`**: Legacy manual tag releases (deprecated)
-- **`.github/workflows/test.yml`**: Runs on all pushes
-
-### Build Configuration
-
-- **`.goreleaser.yaml`**: Defines build targets and artifacts
-- Builds for: Linux, macOS, Windows (amd64, arm64, 386, arm)
-- Generates SHA256 checksums
-
-## Best Practices
-
-1. **Always use conventional commits** for main branch
-2. **Squash merge PRs** to keep a clean commit history
-3. **Review release PRs** before merging to verify changelog
-4. **Tag releases semantically** if manual tagging is required
-5. **Test before releasing** - CI runs automatically on PRs
-
-## Resources
-
-- [Conventional Commits](https://www.conventionalcommits.org/)
-- [Release Please Documentation](https://github.com/googleapis/release-please)
-- [Semantic Versioning](https://semver.org/)
-- [Keep a Changelog](https://keepachangelog.com/)
-- [GoReleaser Documentation](https://goreleaser.com/)

@@ -33,6 +33,7 @@ func TestConfig(t *testing.T) {
 		err = testConfigRead(t, b, reqStorage, map[string]interface{}{
 			"api_key_id": "1e962ce6-b12a-4a87-bbb2-07fe5986334c",
 			"app_key_id": "1e962ce6-b12a-4a87-bbb2-07fe5986334c",
+			"site":       "datadoghq.com",
 		})
 		assert.NoError(t, err)
 

@@ -1,12 +1,5 @@
 version: 2
 
-gitlab_urls:
-  api: https://sbp.gitlab.schubergphilis.com/api/v4/
-  download: https://sbp.gitlab.schubergphilis.com
-  # Authenticate with CI_JOB_TOKEN; artifacts go to the generic package registry.
-  use_job_token: true
-  use_package_registry: true
-
 before:
   hooks:
     - go mod tidy
@@ -18,7 +11,7 @@ builds:
     flags:
       - -trimpath
     ldflags:
-      - "-s -w -X sbp.gitlab.schubergphilis.com/SaaS/Azure/vault/vault-plugins/vault-plugin-secrets-datadog/plugin.Version=v{{ .Version }}"
+      - "-s -w -X github.com/schubergphilis/vault-plugin-secrets-datadog/plugin.Version=v{{ .Version }}"
     # Only the platform our Vault nodes run on. Every target compiles the
     # large datadogV2 package (~5 GB peak memory), so extra targets are costly.
     goos:
@@ -40,6 +33,5 @@ checksum:
 snapshot:
   version_template: "{{ incpatch .Version }}-next"
 changelog:
-  # CHANGELOG.md is maintained by hand; the GitLab changelog API is not
-  # available with CI_JOB_TOKEN anyway.
+  # CHANGELOG.md is maintained by hand.
   disable: true

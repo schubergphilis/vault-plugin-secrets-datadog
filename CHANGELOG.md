@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### CI
 
 * **deps:** bump github.com/DataDog/datadog-api-client-go/v2 to v2.65.0 for the access token APIs
-* moved from GitHub to GitLab (`sbp.gitlab.schubergphilis.com/SaaS/Azure/vault/vault-plugins/vault-plugin-secrets-datadog`), including the Go module path; releases are published by pushing a `vX.Y.Z` tag
+* moved to `github.com/schubergphilis/vault-plugin-secrets-datadog`, including the Go module path; GitHub Actions publishes a GitHub Release when a `vX.Y.Z` tag is pushed
 
 ## [0.2.7](https://github.com/rizkybiz/vault-plugin-secrets-datadog/compare/v0.2.6...v0.2.7) (2026-04-09)
 

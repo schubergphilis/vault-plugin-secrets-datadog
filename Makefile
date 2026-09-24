@@ -15,7 +15,7 @@ endif
 all: fmt  build  test start 
 
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo v0.0.0-dev)
-LDFLAGS = -X sbp.gitlab.schubergphilis.com/SaaS/Azure/vault/vault-plugins/vault-plugin-secrets-datadog/plugin.Version=$(VERSION)
+LDFLAGS = -X github.com/schubergphilis/vault-plugin-secrets-datadog/plugin.Version=$(VERSION)
 
 build:
 	GOOS=$(OS) GOARCH="$(GOARCH)" go build -ldflags "$(LDFLAGS)" -o vault/plugins/vault-plugin-secrets-datadog cmd/vault-plugin-secrets-datadog/main.go

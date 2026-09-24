@@ -1,0 +1,58 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+    # Only vX.Y.Z tags; pre-release tags such as v0.3.0-rc1 do not run.
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: gofmt
+        run: test -z "$(gofmt -l $(git ls-files '*.go'))" || { gofmt -l $(git ls-files '*.go'); echo "run 'make fmt'"; exit 1; }
+      - run: go vet ./...
+      - run: go test -v ./...
+      - run: go build -v ./...
+
+  commitlint:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: wagoid/commitlint-github-action@v6
+        with:
+          configFile: .config/.commitlintrc.json
+
+  # Push a semver tag (e.g. v0.3.0) to publish a GitHub release. The version
+  # compiled into the plugin is taken from that same tag by goreleaser.
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [test]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - uses: goreleaser/goreleaser-action@v6
+        with:
+          version: "~> v2"
+          args: release --clean --config .config/.goreleaser.yaml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

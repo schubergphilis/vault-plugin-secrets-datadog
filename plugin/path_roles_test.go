@@ -154,3 +154,38 @@ func testTokenRoleDelete(t *testing.T, b *datadogBackend, s logical.Storage) (*l
 		Storage:   s,
 	})
 }
+
+func TestRolePartialUpdateKeepsOtherFields(t *testing.T) {
+	b, s := getTestBackend(t)
+	_, err := testTokenRoleCreate(t, b, s, roleName, map[string]interface{}{
+		"app_key_scopes":      "usage_read",
+		"access_token_scopes": "metrics_read, ,dashboards_read",
+		"ttl":                 testTTL,
+		"max_ttl":             testMaxTTL,
+	})
+	require.NoError(t, err)
+
+	// Vault's router picks create vs update from the existence check
+	req := &logical.Request{
+		Operation: logical.UpdateOperation,
+		Path:      pathRoleDef + roleName,
+		Storage:   s,
+		Data:      map[string]interface{}{"service_account_id": "sa-123"},
+	}
+	checkFound, exists, err := b.HandleExistenceCheck(context.Background(), req)
+	require.NoError(t, err)
+	require.True(t, checkFound)
+	require.True(t, exists, "existing role must be reported as existing")
+
+	resp, err := b.HandleRequest(context.Background(), req)
+	require.NoError(t, err)
+	require.Nil(t, resp)
+
+	resp, err = testTokenRoleRead(t, b, s)
+	require.NoError(t, err)
+	require.Equal(t, []string{"usage_read"}, resp.Data["app_key_scopes"])
+	require.Equal(t, []string{"metrics_read", "dashboards_read"}, resp.Data["access_token_scopes"])
+	require.Equal(t, "sa-123", resp.Data["service_account_id"])
+	require.Equal(t, float64(testTTL), resp.Data["ttl"])
+	require.Equal(t, float64(testMaxTTL), resp.Data["max_ttl"])
+}

@@ -9,14 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Features
 
+* **tokens:** issue Datadog personal access tokens (`ddpat_`, `pat/<role>`) and service account access tokens (`ddsat_`, `sat/<role>`), configured with the new role fields `access_token_scopes` and `service_account_id`
 * **config:** add `site` setting to target a Datadog site other than US1, e.g. `datadoghq.eu` for EU organizations (defaults to `datadoghq.com`)
 
 ### Bug Fixes
 
+* **roles:** updating a role with only some fields no longer resets the other fields to their defaults; the existence check looked up `roles/` instead of `roles/<name>`, so every write was treated as a create
 * the plugin now reports the release version to Vault; the build previously injected it into a non-existent package, so every release reported `v0.1.2`
 
 ### CI
 
+* **deps:** bump github.com/DataDog/datadog-api-client-go/v2 to v2.65.0 for the access token APIs
 * moved from GitHub to GitLab (`sbp.gitlab.schubergphilis.com/SaaS/Azure/vault/vault-plugins/vault-plugin-secrets-datadog`), including the Go module path; releases are published by pushing a `vX.Y.Z` tag
 
 ## [0.2.7](https://github.com/rizkybiz/vault-plugin-secrets-datadog/compare/v0.2.6...v0.2.7) (2026-04-09)

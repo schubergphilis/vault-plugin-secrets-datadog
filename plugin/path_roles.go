@@ -57,10 +57,12 @@ var (
 // a Vault role for interoperating with the datadog
 // api
 type datadogRoleEntry struct {
-	Name         string        `json:"name"`
-	AppKeyScopes []string      `json:"app_key_scopes"`
-	TTL          time.Duration `json:"ttl"`
-	MaxTTL       time.Duration `json:"max_ttl"`
+	Name              string        `json:"name"`
+	AppKeyScopes      []string      `json:"app_key_scopes"`
+	AccessTokenScopes []string      `json:"access_token_scopes"`
+	ServiceAccountID  string        `json:"service_account_id"`
+	TTL               time.Duration `json:"ttl"`
+	MaxTTL            time.Duration `json:"max_ttl"`
 }
 
 // pathRole defines the framework.Path for datadog roles
@@ -78,6 +80,14 @@ func pathRole(b *datadogBackend) []*framework.Path {
 				"app_key_scopes": {
 					Type:        framework.TypeCommaStringSlice,
 					Description: "Optional. List of datadog permissions scopes to be applied to the application key.",
+				},
+				"access_token_scopes": {
+					Type:        framework.TypeCommaStringSlice,
+					Description: "Optional. List of datadog permission scopes granted to personal and service account access tokens. Required to generate access tokens.",
+				},
+				"service_account_id": {
+					Type:        framework.TypeString,
+					Description: "Optional. ID of the datadog service account that service account access tokens are created for. Required to generate service account access tokens.",
 				},
 				"ttl": {
 					Type:        framework.TypeDurationSecond,
@@ -187,6 +197,16 @@ func (b *datadogBackend) pathRolesWrite(ctx context.Context, req *logical.Reques
 		}
 	}
 
+	if tokenScopes, ok := d.GetOk("access_token_scopes"); ok {
+		roleEntry.AccessTokenScopes = nonEmpty(tokenScopes.([]string))
+	} else if createOperation {
+		roleEntry.AccessTokenScopes = nonEmpty(d.Get("access_token_scopes").([]string))
+	}
+
+	if serviceAccountID, ok := d.GetOk("service_account_id"); ok {
+		roleEntry.ServiceAccountID = serviceAccountID.(string)
+	}
+
 	if ttlRaw, ok := d.GetOk("ttl"); ok {
 		roleEntry.TTL = time.Duration(ttlRaw.(int)) * time.Second
 	} else if createOperation {
@@ -223,7 +243,7 @@ func (b *datadogBackend) pathRolesDelete(ctx context.Context, req *logical.Reque
 
 func (b *datadogBackend) PathRolesExistenceCheck(ctx context.Context, req *logical.Request, data *framework.FieldData) (bool, error) {
 
-	out, err := req.Storage.Get(ctx, pathRoleDef)
+	out, err := req.Storage.Get(ctx, pathRoleDef+data.Get("name").(string))
 	if err != nil {
 		return false, fmt.Errorf("existence check failed: %w", err)
 	}
@@ -281,9 +301,11 @@ func validateScopes(scopes []string) error {
 func (r *datadogRoleEntry) toResponseData() map[string]interface{} {
 
 	return map[string]interface{}{
-		"app_key_scopes": r.AppKeyScopes,
-		"ttl":            r.TTL.Seconds(),
-		"max_ttl":        r.MaxTTL.Seconds(),
+		"app_key_scopes":      r.AppKeyScopes,
+		"access_token_scopes": r.AccessTokenScopes,
+		"service_account_id":  r.ServiceAccountID,
+		"ttl":                 r.TTL.Seconds(),
+		"max_ttl":             r.MaxTTL.Seconds(),
 	}
 
 }

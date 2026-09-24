@@ -150,6 +150,40 @@ lease_renewable    true
 app_key            <REDACTED>
 ```
 
+### Personal and service account access tokens
+
+The plugin can also issue Datadog [access tokens][datadog-access-tokens]: personal access tokens (`ddpat_...`) and service account access tokens (`ddsat_...`). Give the role the scopes the tokens should get, and for service account tokens the ID of the service account:
+
+```sh
+$ vault write datadog/roles/tokens \
+    access_token_scopes=dashboards_read,monitors_read \
+    service_account_id=00000000-0000-0000-0000-000000000000 \
+    ttl=1h max_ttl=48h
+```
+
+* Generate a personal access token. It belongs to the user that owns the configured Application Key:
+
+```sh
+$ vault read datadog/pat/tokens
+Key                Value
+---                -----
+lease_id           datadog/pat/tokens/Qm1Ys1F8i5nC2KjQx0nqbzGH
+lease_duration     1h
+lease_renewable    true
+token              <REDACTED>
+token_id           2c0c5d4e-6a55-4f3e-9d37-1b2f0a4a5e61
+```
+
+* Generate a service account access token for the role's `service_account_id`:
+
+```sh
+$ vault read datadog/sat/tokens
+```
+
+A personal access token belongs to the Datadog user that owns the configured Application Key. If you later replace `app_key` in `datadog/config` with a key of a different user, that user may not be allowed to revoke tokens issued before the change. `config/rotate` keeps the same user, so it is safe.
+
+Vault revokes the token in Datadog when the lease expires or is revoked. A token that is already gone in Datadog (404) counts as revoked. Renewals are capped so a lease never outlives its token. As a safety net, each token is also created with a Datadog expiry that covers the longest possible lease: the role's `max_ttl`, or the system max lease TTL when it is not set. The expiry is never less than 24 hours, the minimum Datadog accepts.
+
 ## Issues
 
 [vault-plugin-secrets-datadog Issues][issues]
@@ -159,4 +193,5 @@ app_key            <REDACTED>
 [vaultdocplugincatalog]: https://www.vaultproject.io/docs/internals/plugins.html#plugin-catalog
 [datadog-create-token]: https://docs.datadoghq.com/account_management/api-app-keys/
 [issues]: https://sbp.gitlab.schubergphilis.com/SaaS/Azure/vault/vault-plugins/vault-plugin-secrets-datadog/-/issues
+[datadog-access-tokens]: https://docs.datadoghq.com/account_management/api-app-keys/
 [datadog-sites]: https://docs.datadoghq.com/getting_started/site/

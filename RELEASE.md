@@ -54,7 +54,7 @@ On merge requests, the `commitlint` job validates every commit against `.config/
 
 ## Build configuration
 
-`.config/.goreleaser.yaml` defines the build targets (Linux, macOS, Windows on amd64, arm64, 386, arm) and generates SHA256 checksums.
+`.config/.goreleaser.yaml` defines the build target (`linux/arm64` only, the platform the Vault nodes run on) and generates SHA256 checksums. Add targets there if another platform is needed; each one compiles the large Datadog client package again, at roughly 5 GB peak memory.
 
 To test the release build locally without publishing:
 

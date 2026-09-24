@@ -22,6 +22,7 @@ terminal-2$ export DATADOG_API_KEY=<valid datadog api key>
 terminal-2$ export DATADOG_API_KEY_ID=<the ID for the above API key>
 terminal-2$ export DATADOG_APP_KEY=<valid datadog app key scoped to allow for generating both api and app keys>
 terminal-2$ export DATADOG_APP_KEY_ID=<the ID for the above application key>
+terminal-2$ export DATADOG_SITE=datadoghq.eu # optional, defaults to datadoghq.com
 terminal-2$ make setup
 ...
 terminal-2$ vault read datadog/apikey/test
@@ -37,7 +38,7 @@ You can find pre-built releases of the plugin [here][ddreleases]. Once you have 
 
 ### From Source
 
-If you prefer to build the plugin from sources, clone the GitHub repository locally and run the command `make build` from the root of the sources directory. Upon successful compilation, the resulting `vault-plugin-secrets-datadog` binary is stored in the `vault/plugins` directory.
+If you prefer to build the plugin from sources, clone the GitLab repository locally and run the command `make build` from the root of the sources directory. Upon successful compilation, the resulting `vault-plugin-secrets-datadog` binary is stored in the `vault/plugins` directory.
 
 ## Configuration
 
@@ -91,8 +92,11 @@ vault write datadog/config \
     api_key=$API_KEY \
     app_key=$APP_KEY \
     api_key_id=$API_KEY_ID \
-    app_key_id=$APP_KEY_ID
+    app_key_id=$APP_KEY_ID \
+    site=datadoghq.eu
 ```
+
+`site` is the [Datadog site][datadog-sites] of your organization and defaults to `datadoghq.com` (US1). Use `datadoghq.eu` for organizations hosted in Europe. The other supported values are `us3.datadoghq.com`, `us5.datadoghq.com`, `ap1.datadoghq.com`, `ap2.datadoghq.com` and `ddog-gov.com`.
 
 * Rotate the API and App Keys, so that only vault (and datadog admins with access to the console) knows them.
 
@@ -108,6 +112,7 @@ Key           Value
 ---           -----
 api_key_id    7dd441ac-d9ff-4e7b-9a23-80cff4a3458e
 app_key_id    8f412eca-e899-4af9-8e38-33302321d3f7
+site          datadoghq.eu
 ```
 
 * Create a Role:
@@ -133,7 +138,7 @@ Key                Value
 lease_id           datadog/apikey/test/j2IPQja7sF1KVrNhj4k8VTiM
 lease_duration     2h
 lease_renewable    true
-api_key            <REDACTED for GitHub>
+api_key            <REDACTED>
 ```
 ```sh
 $ vault read datadog/appkey/test
@@ -142,15 +147,16 @@ Key                Value
 lease_id           datadog/appkey/test/DCDdWYBROZRIQQfmOv2C4SUP
 lease_duration     2h
 lease_renewable    true
-app_key            <REDACTED for GitHub>
+app_key            <REDACTED>
 ```
 
 ## Issues
 
 [vault-plugin-secrets-datadog Issues][issues]
 
-[ddreleases]: https://github.com/rizkybiz/vault-plugin-secrets-datadog/releases
+[ddreleases]: https://sbp.gitlab.schubergphilis.com/SaaS/Azure/vault/vault-plugins/vault-plugin-secrets-datadog/-/releases
 [vaultdocplugindir]: https://www.vaultproject.io/docs/configuration/index.html#plugin_directory
 [vaultdocplugincatalog]: https://www.vaultproject.io/docs/internals/plugins.html#plugin-catalog
 [datadog-create-token]: https://docs.datadoghq.com/account_management/api-app-keys/
-[issues]: https://github.com/rizkybiz/vault-plugin-secrets-datadog/issues
+[issues]: https://sbp.gitlab.schubergphilis.com/SaaS/Azure/vault/vault-plugins/vault-plugin-secrets-datadog/-/issues
+[datadog-sites]: https://docs.datadoghq.com/getting_started/site/

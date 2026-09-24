@@ -1,5 +1,12 @@
 version: 2
 
+gitlab_urls:
+  api: https://sbp.gitlab.schubergphilis.com/api/v4/
+  download: https://sbp.gitlab.schubergphilis.com
+  # Authenticate with CI_JOB_TOKEN; artifacts go to the generic package registry.
+  use_job_token: true
+  use_package_registry: true
+
 before:
   hooks:
     - go mod tidy
@@ -11,7 +18,7 @@ builds:
     flags:
       - -trimpath
     ldflags:
-      - "-s -w -X github.com/rizkybiz/vault-plugin-secrets-datadog.Version=v{{ .Version }}"
+      - "-s -w -X sbp.gitlab.schubergphilis.com/SaaS/Azure/vault/vault-plugins/vault-plugin-secrets-datadog/plugin.Version=v{{ .Version }}"
     goos:
       - linux
       - windows
@@ -45,5 +52,6 @@ checksum:
 snapshot:
   version_template: "{{ incpatch .Version }}-next"
 changelog:
-  # Skip changelog generation since release-please handles it
+  # CHANGELOG.md is maintained by hand; the GitLab changelog API is not
+  # available with CI_JOB_TOKEN anyway.
   disable: true

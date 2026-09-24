@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
+	"github.com/DataDog/datadog-api-client-go/v2/api/datadog"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
 )
@@ -20,14 +22,34 @@ const (
 	You must provide an API and App key scoped at 
 	least with the ability to create an API and 
 	App key before using this secrets backend.
+
+	Set site to the Datadog site of the organization, for
+	example datadoghq.com (US) or datadoghq.eu (EU). It
+	defaults to datadoghq.com.
 	`
+	defaultSite = "datadoghq.com"
 )
+
+// supportedSites returns the Datadog sites known to the API client.
+func supportedSites() []string {
+	return datadog.NewConfiguration().Servers[0].Variables["site"].EnumValues
+}
+
+// siteOrDefault returns the configured site, falling back to the default for
+// configurations stored before the site setting existed.
+func (c *datadogConfig) siteOrDefault() string {
+	if c.Site == "" {
+		return defaultSite
+	}
+	return c.Site
+}
 
 type datadogConfig struct {
 	APIKey   string `json:"api_key"`
 	APIKeyID string `json:"api_key_id"`
 	AppKey   string `json:"app_key"`
 	AppKeyID string `json:"app_key_id"`
+	Site     string `json:"site"`
 }
 
 func pathConfig(b *datadogBackend) *framework.Path {
@@ -71,6 +93,15 @@ func pathConfig(b *datadogBackend) *framework.Path {
 					Sensitive: false,
 				},
 			},
+			"site": {
+				Type:        framework.TypeString,
+				Description: fmt.Sprintf("The Datadog site the organization lives on, e.g. datadoghq.com (US1) or datadoghq.eu (EU1). One of: %s", strings.Join(supportedSites(), ", ")),
+				Default:     defaultSite,
+				DisplayAttrs: &framework.DisplayAttributes{
+					Name:      "Site",
+					Sensitive: false,
+				},
+			},
 		},
 		Operations: map[logical.Operation]framework.OperationHandler{
 			logical.CreateOperation: &framework.PathOperation{
@@ -103,6 +134,7 @@ func (b *datadogBackend) pathConfigRead(ctx context.Context, req *logical.Reques
 		Data: map[string]interface{}{
 			"api_key_id": config.APIKeyID,
 			"app_key_id": config.AppKeyID,
+			"site":       config.siteOrDefault(),
 		},
 	}, nil
 }
@@ -145,6 +177,16 @@ func (b *datadogBackend) pathConfigWrite(ctx context.Context, req *logical.Reque
 		config.AppKeyID = appKeyID.(string)
 	} else if !ok && createOperation {
 		return nil, fmt.Errorf("missing Application Key ID in configuration")
+	}
+
+	if site, ok := data.GetOk("site"); ok {
+		config.Site = site.(string)
+	} else if createOperation {
+		config.Site = defaultSite
+	}
+
+	if !contains(supportedSites(), config.siteOrDefault()) {
+		return logical.ErrorResponse("unsupported site %q, must be one of: %s", config.Site, strings.Join(supportedSites(), ", ")), nil
 	}
 
 	entry, err := logical.StorageEntryJSON(configStoragePath, config)

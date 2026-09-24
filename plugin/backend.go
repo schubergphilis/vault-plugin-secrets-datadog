@@ -9,7 +9,9 @@ import (
 	"github.com/hashicorp/vault/sdk/logical"
 )
 
-var Version = "v0.1.2"
+// Version is injected at build time from the git tag via -ldflags
+// (see .config/.goreleaser.yaml and the Makefile).
+var Version = "v0.0.0-dev"
 
 // datadogBackend defines a struct that extends the Vault backend
 // and stores the datadog API Client

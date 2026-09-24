@@ -32,7 +32,13 @@ const (
 
 // supportedSites returns the Datadog sites known to the API client.
 func supportedSites() []string {
-	return datadog.NewConfiguration().Servers[0].Variables["site"].EnumValues
+	sites := []string{}
+	for _, site := range datadog.NewConfiguration().Servers[0].Variables["site"].EnumValues {
+		if !contains(sites, site) {
+			sites = append(sites, site)
+		}
+	}
+	return sites
 }
 
 // siteOrDefault returns the configured site, falling back to the default for

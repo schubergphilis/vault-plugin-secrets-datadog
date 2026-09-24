@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	datadog "sbp.gitlab.schubergphilis.com/SaaS/Azure/vault/vault-plugins/vault-plugin-secrets-datadog/plugin"
+	datadog "github.com/schubergphilis/vault-plugin-secrets-datadog/plugin"
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/vault/api"

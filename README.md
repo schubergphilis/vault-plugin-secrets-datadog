@@ -38,7 +38,7 @@ You can find pre-built releases of the plugin [here][ddreleases]. Once you have 
 
 ### From Source
 
-If you prefer to build the plugin from sources, clone the GitLab repository locally and run the command `make build` from the root of the sources directory. Upon successful compilation, the resulting `vault-plugin-secrets-datadog` binary is stored in the `vault/plugins` directory.
+If you prefer to build the plugin from sources, clone the GitHub repository locally and run the command `make build` from the root of the sources directory. Upon successful compilation, the resulting `vault-plugin-secrets-datadog` binary is stored in the `vault/plugins` directory.
 
 ## Configuration
 
@@ -188,10 +188,10 @@ Vault revokes the token in Datadog when the lease expires or is revoked. A token
 
 [vault-plugin-secrets-datadog Issues][issues]
 
-[ddreleases]: https://sbp.gitlab.schubergphilis.com/SaaS/Azure/vault/vault-plugins/vault-plugin-secrets-datadog/-/releases
+[ddreleases]: https://github.com/schubergphilis/vault-plugin-secrets-datadog/releases
 [vaultdocplugindir]: https://www.vaultproject.io/docs/configuration/index.html#plugin_directory
 [vaultdocplugincatalog]: https://www.vaultproject.io/docs/internals/plugins.html#plugin-catalog
 [datadog-create-token]: https://docs.datadoghq.com/account_management/api-app-keys/
-[issues]: https://sbp.gitlab.schubergphilis.com/SaaS/Azure/vault/vault-plugins/vault-plugin-secrets-datadog/-/issues
+[issues]: https://github.com/schubergphilis/vault-plugin-secrets-datadog/issues
 [datadog-access-tokens]: https://docs.datadoghq.com/account_management/api-app-keys/
 [datadog-sites]: https://docs.datadoghq.com/getting_started/site/

@@ -4,12 +4,12 @@ Thank you for your interest in contributing! This document provides guidelines f
 
 ## Getting Started
 
-1. Clone the repository: `git clone ssh://git@sbp.gitlab.schubergphilis.com:2228/SaaS/Azure/vault/vault-plugins/vault-plugin-secrets-datadog.git`
+1. Clone the repository: `git clone git@github.com:schubergphilis/vault-plugin-secrets-datadog.git`
 2. Create a feature branch: `git checkout -b feature/my-new-feature`
 3. Make your changes
 4. Test your changes: `go test ./...`
 5. Commit using conventional commits (see below)
-6. Push your branch and open a merge request
+6. Push your branch and open a pull request
 
 ## Development Setup
 
@@ -41,7 +41,7 @@ make test
 
 ## Commit Message Guidelines
 
-**⚠️ IMPORTANT:** This project enforces [Conventional Commits](https://www.conventionalcommits.org/) format. Merge requests with non-compliant commit messages will fail the `commitlint` CI job.
+**⚠️ IMPORTANT:** This project enforces [Conventional Commits](https://www.conventionalcommits.org/) format. Pull requests with non-compliant commit messages will fail the `commitlint` CI job.
 
 ### Format
 
@@ -129,17 +129,17 @@ BREAKING CHANGE: Configuration file format has changed from YAML to JSON.
 Migration guide: https://...
 ```
 
-## Merge Request Process
+## Pull Request Process
 
 1. **Ensure tests pass**: Run `go test ./...`
 2. **Update documentation**: If you've changed APIs or behavior
-3. **Use conventional commits**: MR title and commits must follow format
-4. **Keep MRs focused**: One feature/fix per PR
+3. **Use conventional commits**: PR title and commits must follow format
+4. **Keep PRs focused**: One feature/fix per PR
 5. **Write clear descriptions**: Explain what and why, not just how
 
-### MR Title Format
+### PR Title Format
 
-Your MR title must follow conventional commit format (it becomes the commit message when squash merged):
+Your PR title must follow conventional commit format (it becomes the commit message when squash merged):
 
 ```
 feat: Add support for new Datadog scopes
@@ -149,7 +149,7 @@ docs: Improve role configuration examples
 
 ### Automated Checks
 
-Every MR will run:
+Every PR will run:
 - ✅ **Test Suite**: All unit tests must pass
 - ✅ **Conventional Commits**: commit messages validated by `commitlint`
 - ✅ **Build**: Code must compile successfully

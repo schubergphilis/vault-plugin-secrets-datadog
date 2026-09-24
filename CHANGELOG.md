@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.3] (2026-09-24)
+
+### CI
+
+* release binaries are built for linux/amd64 (`linux_x86_64.tar.gz`) as well as linux/arm64
+
 ## [0.3.2] (2026-09-24)
 
 ### CI

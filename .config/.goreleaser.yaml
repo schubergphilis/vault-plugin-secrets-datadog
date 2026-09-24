@@ -19,21 +19,12 @@ builds:
       - -trimpath
     ldflags:
       - "-s -w -X sbp.gitlab.schubergphilis.com/SaaS/Azure/vault/vault-plugins/vault-plugin-secrets-datadog/plugin.Version=v{{ .Version }}"
+    # Only the platform our Vault nodes run on. Every target compiles the
+    # large datadogV2 package (~5 GB peak memory), so extra targets are costly.
     goos:
       - linux
-      - windows
-      - darwin
     goarch:
-      - amd64
-      - "386"
-      - arm
       - arm64
-    ignore:
-      - goos: darwin
-        goarch: "386"
-      - goos: windows
-        goarch: arm
-        goarm: "6"
 archives:
   - formats: ["tar.gz"]
     name_template: >-
@@ -44,9 +35,6 @@ archives:
       {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
-    format_overrides:
-      - goos: windows
-        formats: ["zip"]
 checksum:
   name_template: "vault-plugin-secrets-datadog_{{ .Version }}.checksums.txt"
 snapshot:

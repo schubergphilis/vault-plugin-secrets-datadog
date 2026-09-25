@@ -1,11 +1,11 @@
 module github.com/schubergphilis/vault-plugin-secrets-datadog
 
-go 1.25.7
+go 1.25.13
 
 require (
 	github.com/DataDog/datadog-api-client-go/v2 v2.65.0
 	github.com/hashicorp/go-hclog v1.6.3
-	github.com/hashicorp/go-uuid v1.0.3
+	github.com/hashicorp/go-uuid v1.0.4
 	github.com/hashicorp/vault/api v1.23.0
 	github.com/hashicorp/vault/sdk v0.25.1
 	github.com/stretchr/testify v1.11.1

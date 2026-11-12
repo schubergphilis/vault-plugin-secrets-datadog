@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Breaking changes
+
+* `datadog/config/rotate` is now triggered with a write (`vault write -f datadog/config/rotate`) instead of a read, in line with other secrets engines. `vault read datadog/config/rotate` is no longer supported.
+
 ## [0.3.3] (2026-09-24)
 
 ### CI

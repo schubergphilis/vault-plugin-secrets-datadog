@@ -101,7 +101,7 @@ vault write datadog/config \
 * Rotate the API and App Keys, so that only vault (and datadog admins with access to the console) knows them.
 
 ```sh
-vault read datadog/config/rotate
+vault write -f datadog/config/rotate
 ```
 
 * Validate that the keys were rotated

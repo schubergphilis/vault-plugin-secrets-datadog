@@ -24,8 +24,8 @@ func pathConfigRotate(b *datadogBackend) *framework.Path {
 	return &framework.Path{
 		Pattern: pathConfigDef + "/rotate",
 		Operations: map[logical.Operation]framework.OperationHandler{
-			logical.ReadOperation: &framework.PathOperation{
-				Callback: b.pathConfigRotateRead,
+			logical.UpdateOperation: &framework.PathOperation{
+				Callback: b.pathConfigRotateUpdate,
 				Summary:  "Rotate datadog API and App Keys",
 			},
 		},
@@ -34,7 +34,7 @@ func pathConfigRotate(b *datadogBackend) *framework.Path {
 	}
 }
 
-func (b *datadogBackend) pathConfigRotateRead(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+func (b *datadogBackend) pathConfigRotateUpdate(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 
 	config, err := getConfig(ctx, req.Storage)
 	if err != nil {
